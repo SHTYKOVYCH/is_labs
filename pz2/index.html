@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RSA</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <form>
+        <label>Что сделать:</label>
+        <input id="encript" type="radio" name="encript" value="true" checked><label for="encript">Зашифровать</label>
+        <input id="decript" type="radio" name="encript" value="false"><label for="decript">Расшифровать</label>
+        <label for="text">Текст для шифрования: </label><input id="text" name="text" type="text">
+        <button>Запуск</button>
+    </form>
+    <section>
+        <span>Открытый ключ:</span>
+        <pre id="openKey">
+        
+        </pre>
+        <span>Закрытый ключ:</span>
+        <pre id="privateKey">
+        
+        </pre>
+        <span>Результат:</span>
+        <span id="result"></span>
+    </section>
+    
+    <script type="module" src="index.js"></script>
+</body>
+</html>
