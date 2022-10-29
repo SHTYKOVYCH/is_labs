@@ -49,12 +49,8 @@ int main() {
                 goto password_found;
             }
             
-            if (!strcmp(possiblePassword, "12345")) {
-                printf("\n!!! was!!! \n");
-            }
-
             incPassword(possiblePassword, maxLen);
-            printf("\r%d %s", maxLen, possiblePassword);
+            //printf("\r%d %s", maxLen, possiblePassword);
         } while (!checkPasswordArray(possiblePassword, maxLen));
     }
     password_found:
