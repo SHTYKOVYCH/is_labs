@@ -3,45 +3,14 @@
 #include <pthread.h>
 
 #include "../crc32/crc32_func.h"
+#include "../bruteforce_funcs/bruteforce_funcs.h"
 
 #define MAX_PASSWORD_LENGTH 10
-#define NUM_OF_THREADS 16
+#define NUM_OF_THREADS 12
 
 #define false 0
 #define true 1
 #define bool char
-
-void initPossiblePassword(char* password, int maxLen) {
-     for (int i = 0; i < maxLen; ++i) {
-        password[i] = 32;
-    }
-}
-
-int checkPasswordArray(char* password, int maxLen) {
-    for (int i = maxLen - 1; i > -1; --i) {
-        if (password[i] != 32) {
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
-void incPassword(unsigned char* password, int maxLen) {
-    password[maxLen - 1] += 1;
-
-    for (int i = maxLen - 1; i > -1; --i) {
-        if (password[i] == 127) {
-            password[i] = 32;
-
-            if (i > 0) {
-                password[i - 1] += 1;
-            }
-        } else {
-            break;
-        }
-    } 
-}
 
 struct password_thread {
     pthread_mutex_t* possiblePassword_mutex;
@@ -57,11 +26,63 @@ struct password_thread {
     unsigned long* searchedSum;
 };
 
+void incPasswordButFirs(unsigned char* password, int maxLen) {
+    password[maxLen - 1] += 1;
+
+    for (int i = maxLen - 1; i > maxLen - 5; --i) {
+        if (password[i] == 127) {
+            password[i] = 32;
+
+            if (i > 0) {
+                password[i - 1] += 1;
+            }
+        } else {
+            break;
+        }
+    }
+}
+
+char* check5Digits(unsigned char* basePassword, unsigned long searchedSum) {
+    int maxPasswordLength = strlen(basePassword);
+   
+    do {
+        unsigned long sum = compute_crc(basePassword);
+
+        if (sum == searchedSum) {
+            return basePassword;
+        }
+        
+        if (maxPasswordLength > 4) {
+            incPasswordButFirs(basePassword, maxPasswordLength);
+        } else {
+            incPassword(basePassword, maxPasswordLength);
+        }
+    } while (!checkPasswordArray(basePassword, maxPasswordLength));
+
+    return NULL;
+}
+
+char* inc5password(char* password, int maxLen) {
+    password[maxLen - 5] += 1;
+
+    for (int i = maxLen - 5; i > -1; --i) {
+        if (password[i] == 127) {
+            password[i] = 32;
+
+            if (i > 0) {
+                password[i - 1] += 1;
+            }
+        } else {
+            break;
+        }
+    } 
+}
+
 void* password_thread(void* threadArgs) {
     struct password_thread* args = threadArgs;
     
     char localPossiblePassword[MAX_PASSWORD_LENGTH];
-    int localMaxLen;
+    int localLength = 0;
 
     while (true) {
         pthread_mutex_lock(args->passwordFound_mutex);
@@ -75,39 +96,27 @@ void* password_thread(void* threadArgs) {
 
         pthread_mutex_lock(args->possiblePassword_mutex);
 
-        if (!checkPasswordArray(args->possiblePassword, *(args->maxPasswordLength))) {
-            strcpy(localPossiblePassword, args->possiblePassword);
-
-            localMaxLen = *(args->maxPasswordLength);
-
-            incPassword(args->possiblePassword, *(args->maxPasswordLength));
-        } else {
+        if (checkPasswordArray(args->possiblePassword, *(args->maxPasswordLength))) {
             *(args->maxPasswordLength) += 1;
 
             if (*(args->maxPasswordLength) == MAX_PASSWORD_LENGTH) {
+                pthread_mutex_unlock(args->possiblePassword_mutex);
                 return NULL;
             }
 
             initPossiblePassword(args->possiblePassword, *(args->maxPasswordLength));
+        }
 
-            strcpy(localPossiblePassword, args->possiblePassword);
+        strcpy(localPossiblePassword, args->possiblePassword);
+        localLength = *(args->maxPasswordLength);
 
-            localMaxLen = *(args->maxPasswordLength);
-
-            incPassword(args->possiblePassword, *(args->maxPasswordLength));
+        if (*(args->maxPasswordLength) > 4) {
+            inc5password(args->possiblePassword, *(args->maxPasswordLength));
         }
 
         pthread_mutex_unlock(args->possiblePassword_mutex);
 
-//        pthread_mutex_lock(args->stdout_mutex);
-
-//        printf("\r%d %s", localMaxLen, localPossiblePassword);
-
-//        pthread_mutex_unlock(args->stdout_mutex);
-
-        unsigned long sum = compute_crc(localPossiblePassword);
-
-        if (sum == *(args->searchedSum)) {
+        if (check5Digits(localPossiblePassword, *(args->searchedSum))) {
             break;
         }
     }
@@ -127,7 +136,7 @@ int main() {
 
     scanf("%lx", &password);
 
-    char possiblePassword[MAX_PASSWORD_LENGTH + 1] = {0};
+    char possiblePassword[MAX_PASSWORD_LENGTH] = {0};
     int maxLength = 0;
 
     char passwordFound = false;

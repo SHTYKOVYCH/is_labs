@@ -1,7 +1,7 @@
 all: bruteforce
 
 bruteforce: 
-	gcc ../crc32/crc32_func.c bruteforce.c -lpthread
+	gcc ../crc32/crc32_func.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -lpthread
 
 test1: a.out
 	../crc32/encript_password.exe 1 | ./a.out
@@ -17,4 +17,13 @@ test4: a.out
 
 test5: a.out
 	../crc32/encript_password.exe 12345 | ./a.out
+
+test6: a.out
+	../crc32/encript_password.exe 123456 | ./a.out
+
+test7: a.out
+	../crc32/encript_password.exe 1234567 | ./a.out
+
+test8: a.out
+	../crc32/encript_password.exe 12345678 | ./a.out
 
