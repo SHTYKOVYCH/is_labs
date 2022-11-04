@@ -1,7 +1,10 @@
 all: bruteforce
 
 bruteforce: 
-	gcc -O3 ../crc32/crc32_func.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c
+	gcc ../crc32/crc32_func.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -march=native
+
+bruteforce_opt: 
+	gcc -O3 ../crc32/crc32_func.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -march=native
 
 test1: a.out
 	../crc32/encript_password.exe 1 | ./a.out
