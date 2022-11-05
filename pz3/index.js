@@ -1,7 +1,7 @@
 "use strict"
 
-import {totalNumbers, simpleNumbers} from "../common/simple-numbers";
-import {modPow, modMul} from "../common/cyclic-operators";
+import {totalNumbers, simpleNumbers} from "../common/simple-numbers.js";
+import {modPow, modMul} from "../common/cyclic-operators.js";
 
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min) + min);
