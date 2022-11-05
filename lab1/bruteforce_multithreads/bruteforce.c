@@ -12,10 +12,26 @@
 #define true 1
 #define bool char
 
+#if LOCK_TYPE==0
+
+#define locker              pthread_mutex_t
+#define locker_lock         pthread_mutex_lock
+#define locker_unlock       pthread_mutex_unlock
+#define locker_init         pthread_mutex_init
+
+#else
+
+#define locker              pthread_spinlock_t
+#define locker_lock         pthread_spin_lock
+#define locker_unlock       pthread_spin_unlock
+#define locker_init         pthread_spin_init
+
+#endif
+
 struct password_thread {
-    pthread_mutex_t* possiblePassword_mutex;
-    pthread_mutex_t* stdout_mutex;
-    pthread_mutex_t* passwordFound_mutex;
+    locker* possiblePassword_mutex;
+    locker* stdout_mutex;
+    locker* passwordFound_mutex;
 
     bool* passwordFound;
     char* foundedPassword;
@@ -44,14 +60,14 @@ void incPasswordButFirs(unsigned char* password, int maxLen) {
 
 char* check5Digits(unsigned char* basePassword, unsigned long searchedSum) {
     int maxPasswordLength = strlen(basePassword);
-   
+
     do {
         unsigned long sum = compute_crc(basePassword);
 
         if (sum == searchedSum) {
             return basePassword;
         }
-        
+
         if (maxPasswordLength > 4) {
             incPasswordButFirs(basePassword, maxPasswordLength);
         } else {
@@ -75,32 +91,33 @@ char* inc5password(char* password, int maxLen) {
         } else {
             break;
         }
-    } 
+    }
+
+    return password;
 }
 
 void* password_thread(void* threadArgs) {
     struct password_thread* args = threadArgs;
-    
+
     char localPossiblePassword[MAX_PASSWORD_LENGTH];
-    int localLength = 0;
 
     while (true) {
-        pthread_mutex_lock(args->passwordFound_mutex);
+        locker_lock(args->passwordFound_mutex);
 
         if (*(args->passwordFound)) {
-            pthread_mutex_unlock(args->passwordFound_mutex);
+            locker_unlock(args->passwordFound_mutex);
             return NULL;
         }
 
-        pthread_mutex_unlock(args->passwordFound_mutex);
+        locker_unlock(args->passwordFound_mutex);
 
-        pthread_mutex_lock(args->possiblePassword_mutex);
+        locker_lock(args->possiblePassword_mutex);
 
         if (checkPasswordArray(args->possiblePassword, *(args->maxPasswordLength))) {
             *(args->maxPasswordLength) += 1;
 
             if (*(args->maxPasswordLength) == MAX_PASSWORD_LENGTH) {
-                pthread_mutex_unlock(args->possiblePassword_mutex);
+                locker_unlock(args->possiblePassword_mutex);
                 return NULL;
             }
 
@@ -108,25 +125,24 @@ void* password_thread(void* threadArgs) {
         }
 
         strcpy(localPossiblePassword, args->possiblePassword);
-        localLength = *(args->maxPasswordLength);
 
         if (*(args->maxPasswordLength) > 4) {
             inc5password(args->possiblePassword, *(args->maxPasswordLength));
         }
 
-        pthread_mutex_unlock(args->possiblePassword_mutex);
+        locker_unlock(args->possiblePassword_mutex);
 
         if (check5Digits(localPossiblePassword, *(args->searchedSum))) {
             break;
         }
     }
 
-    pthread_mutex_lock(args->passwordFound_mutex);
-    
+    locker_lock(args->passwordFound_mutex);
+
     *(args->passwordFound) = true;
     strcpy(args->foundedPassword, localPossiblePassword);
 
-    pthread_mutex_unlock(args->passwordFound_mutex);
+    locker_unlock(args->passwordFound_mutex);
 
     return NULL;
 }
@@ -142,13 +158,13 @@ int main() {
     char passwordFound = false;
     char foundedPassword[MAX_PASSWORD_LENGTH];
 
-    pthread_mutex_t possiblePassword_mutex,
-                    stdout_mutex,
-                    password_found_mutex;
+    locker possiblePassword_mutex,
+           stdout_mutex,
+           password_found_mutex;
 
-    pthread_mutex_init(&possiblePassword_mutex, NULL);
-    pthread_mutex_init(&stdout_mutex, NULL);
-    pthread_mutex_init(&password_found_mutex, NULL);
+    locker_init(&possiblePassword_mutex, NULL);
+    locker_init(&stdout_mutex, NULL);
+    locker_init(&password_found_mutex, NULL);
 
     pthread_t threads[NUM_OF_THREADS];
 
@@ -164,7 +180,7 @@ int main() {
 
         passwordThreads[i].passwordFound = &passwordFound;
         passwordThreads[i].foundedPassword = foundedPassword;
-        
+
         passwordThreads[i].searchedSum = &password;
     }
 

@@ -1,7 +1,10 @@
 all: bruteforce
 
-bruteforce: 
-	gcc  ../crc32/crc32_func.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -lpthread
+bruteforce_mutex: 
+	gcc  -include mutex.h ../crc32/crc32_func.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -lpthread
+
+bruteforce_spinlock: 
+	gcc  -include spinlock.h ../crc32/crc32_func.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -lpthread
 
 bruteforce_opti: 
 	gcc  ../crc32/crc32_func.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -lpthread -march=native -O0 -pipe
