@@ -2,32 +2,9 @@
 #include <string.h>
 
 #include "../crc32/crc32_func.h"
+#include "../bruteforce_funcs/bruteforce_funcs.h"
 
 #define MAX_PASSWORD_LENGTH 10
-
-int checkPasswordArray(char* password, int maxLen) {
-    for (int i = maxLen - 1; i > -1; --i) {
-        if (password[i] != 32) {
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
-void incPassword(unsigned char* password, int maxLen) {
-    password[maxLen - 1] += 1;
-
-    for (int i = maxLen - 1; i > -1; --i) {
-        if (password[i] == 127) {
-            password[i] = 32;
-
-            if (i > 0) {
-                password[i - 1] += 1;
-            }
-        }
-    } 
-}
 
 int main() {
     unsigned long password;

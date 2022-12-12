@@ -11,7 +11,7 @@ int main(int argc, char* argv[]) {
     } else {
         scanf("%s", message);
     }
-    
+
     printf("%lx\n", compute_crc(message));
 
     return 0;
