@@ -153,7 +153,7 @@ function GOST_Kuz_reverse_L(in_data) {
 
 // функция расчета констант
 function GOST_Kuz_Get_C() {
-    let iter_num = Array.from(new Array(32).keys()).map((el) => new Uint8Array(BLOCK_SIZE));
+    let iter_num = Array.from(new Array(32).keys()).map(() => new Uint8Array(BLOCK_SIZE));
     for (let i = 0; i < 32; i++) {
         for (let j = 0; j < BLOCK_SIZE; j++)
             iter_num[i][j] = 0;
@@ -249,7 +249,7 @@ let t = new Uint8Array('8899aabbccddeeff0011223344556677fedcba987654321001234567
 key_1 = t.slice(0, 16);
 key_2 = t.slice(16);
 let blk = new Uint8Array("1122334455667700ffeeddccbbaa9988".match(/.{1,2}/g).map(el => parseInt(el, 16)));
-blk = new Uint8Array(encoder.encode('Кадыров'), 1, BLOCK_SIZE);
+blk = new Uint8Array(encoder.encode('Кадыров'), 0, BLOCK_SIZE);
 
 
 GOST_Kuz_Expand_Key(key_1, key_2);
