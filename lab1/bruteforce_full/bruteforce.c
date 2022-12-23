@@ -5,7 +5,7 @@
 #include "../crc32/crc32_func.h"
 #include "../bruteforce_funcs/bruteforce_funcs.h"
 
-#define MAX_PASSWORD_LENGTH 10
+#define MAX_PASSWORD_LENGTH 7
 #define NUM_OF_THREADS 12
 
 #define false 0
@@ -76,6 +76,7 @@ char* check5Digits(unsigned char* basePassword, unsigned long searchedSum) {
         unsigned long sum = compute_crc(basePassword);
 
         if (sum == searchedSum) {
+            printf("Founded password: %s\n", basePassword);
             return basePassword;
         }
 
@@ -121,15 +122,6 @@ void* password_thread(void* threadArgs) {
     char localPossiblePassword[MAX_PASSWORD_LENGTH] = {0};
 
     while (true) {
-        locker_lock(args->passwordFound_mutex);
-
-        if (*(args->passwordFound)) {
-            locker_unlock(args->passwordFound_mutex);
-            return NULL;
-        }
-
-        locker_unlock(args->passwordFound_mutex);
-
         locker_lock(args->possiblePassword_mutex);
 
         if (*(args->maxPasswordLength) == MAX_PASSWORD_LENGTH) {
@@ -149,6 +141,7 @@ void* password_thread(void* threadArgs) {
         }
 
         strcpy(localPossiblePassword, args->possiblePassword);
+        //printf("Thread id: %d Length: %d Base password: %s\n", args->threadId, *(args->maxPasswordLength), localPossiblePassword);
 
         if (*(args->maxPasswordLength) > 4) {
             inc5password(args->possiblePassword, *(args->maxPasswordLength));
@@ -157,16 +150,8 @@ void* password_thread(void* threadArgs) {
         locker_unlock(args->possiblePassword_mutex);
 
         if (check5Digits(localPossiblePassword, *(args->searchedSum))) {
-            break;
         }
     }
-
-    locker_lock(args->passwordFound_mutex);
-
-    *(args->passwordFound) = true;
-    strcpy(args->foundedPassword, localPossiblePassword);
-
-    locker_unlock(args->passwordFound_mutex);
 
     return NULL;
 }
@@ -217,10 +202,7 @@ int main() {
         pthread_join(threads[i], NULL);
     }
 
-
     //while (!passwordFound) {};
-
-    printf("\n%s\n", foundedPassword);
 
     return 0;
 }
