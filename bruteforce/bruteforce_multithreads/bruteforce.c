@@ -6,7 +6,7 @@
 #include "../bruteforce_funcs/bruteforce_funcs.h"
 
 #define MAX_PASSWORD_LENGTH 10
-#define NUM_OF_THREADS 12
+#define NUM_OF_THREADS 6
 
 #define false 0
 #define true 1

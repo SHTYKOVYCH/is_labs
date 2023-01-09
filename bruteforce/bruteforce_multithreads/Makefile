@@ -60,3 +60,5 @@ test7: a.out
 test8: a.out
 	../crc32/encript_password.exe 12345678 | ./a.out
 
+test_et:
+	../crc32/encript_password.exe M[!BK\(9eraA1 | ./a.out
