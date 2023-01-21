@@ -22,11 +22,10 @@ typedef struct GOSTHashContext
     vect v_0;
     vect v_512;
     size_t buf_size;
-    int hash_size;
 } TGOSTHashContext;
 
 void
-GOSTHashInit(TGOSTHashContext *CTX, uint16_t hash_size);
+GOSTHashInit(TGOSTHashContext *CTX);
 
 void
 GOSTHashUpdate(TGOSTHashContext *CTX, const uint8_t *data, size_t len);

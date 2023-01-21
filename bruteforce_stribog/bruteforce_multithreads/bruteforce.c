@@ -4,22 +4,32 @@
 
 #include "../bruteforce_funcs/bruteforce_funcs.h"
 
-#include "../crc32/gost_3411_2012_calc.h"
-#include "../crc32/gost_3411_2012_test.h"
+#include "gost_3411_2012_calc.h"
 
 #define MAX_PASSWORD_LENGTH 10
-#define NUM_OF_THREADS 8
+//#define NUM_OF_THREADS 12
 
 #define false 0
 #define true 1
 #define bool char
+
+#ifdef mutex
 
 #define locker              pthread_mutex_t
 #define locker_lock         pthread_mutex_lock
 #define locker_unlock       pthread_mutex_unlock
 #define locker_init         pthread_mutex_init
 
-#define testNum 5
+#else
+
+#define locker              pthread_spinlock_t
+#define locker_lock         pthread_spin_lock
+#define locker_unlock       pthread_spin_unlock
+#define locker_init         pthread_spin_init
+
+#endif
+
+//#define testNum 2
 
 struct password_thread {
     int threadId;
@@ -63,10 +73,8 @@ int checkPasswordArray5(char* password, int maxLen) {
 }
 
 TGOSTHashContext* compute_crc(char* str, TGOSTHashContext* CTX) {
-    uint8_t buffer[strlen(str)];
-    memcpy(buffer, str, strlen(str));
-    GOSTHashInit(CTX, 512);
-    GOSTHashUpdate(CTX, buffer, strlen(str));
+    GOSTHashInit(CTX);
+    GOSTHashUpdate(CTX, str, strlen(str));
     GOSTHashFinal(CTX);
     
     return CTX;
@@ -122,9 +130,9 @@ char* check5Digits(unsigned char* basePassword, uint8_t* searchedSum, struct pas
 }
 
 char* inc5password(char* password, int maxLen) {
-    password[maxLen - 5] += 1;
+    password[maxLen - testNum] += 1;
 
-    for (int i = maxLen - 5; i > -1; --i) {
+    for (int i = maxLen - testNum; i > -1; --i) {
         if (password[i] == 127) {
             password[i] = 32;
 
@@ -174,12 +182,13 @@ void* password_thread(void* threadArgs) {
 
         strcpy(localPossiblePassword, args->possiblePassword);
 
-        if (*(args->maxPasswordLength) > 4) {
+        if (*(args->maxPasswordLength) > testNum - 1) {
             inc5password(args->possiblePassword, *(args->maxPasswordLength));
         }
 
         locker_unlock(args->possiblePassword_mutex);
 
+        //printf("thread id: %d; thread base password: |%s|\n", args->threadId, localPossiblePassword);
         if (check5Digits(localPossiblePassword, *(args->searchedSum), args)) {
             break;
         }

@@ -3,7 +3,6 @@
 #include <unistd.h>
 
 #include "gost_3411_2012_calc.h"
-#include "gost_3411_2012_test.h"
 
 #define FILE_BUFFER_SIZE 4096
 #define DEFAULT_HASH_SIZE 512
@@ -14,12 +13,8 @@ static void
 HashPrint(TGOSTHashContext *CTX)
 {
     int i;
-    if (CTX->hash_size == 256)
-        for(i = 32; i < 64; i++)
-            printf("%02x", CTX->hash[i]);
-    else
-        for(i = 0; i < 64; i++)
-            printf("%02x", CTX->hash[i]);
+    for(i = 0; i < 64; i++)
+        printf("%02x", CTX->hash[i]);
     printf("\n");
 }
 
@@ -29,7 +24,7 @@ GetHashString(const char *str, int hash_size)
     uint8_t *buffer;
     buffer = malloc(strlen(str));
     memcpy(buffer, str, strlen(str));
-    GOSTHashInit(CTX, hash_size);
+    GOSTHashInit(CTX);
     GOSTHashUpdate(CTX, buffer, strlen(str));
     GOSTHashFinal(CTX);
     HashPrint(CTX);

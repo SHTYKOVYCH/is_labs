@@ -1,27 +1,9 @@
 #include "gost_3411_2012_calc.h"
 
-//#define DEBUG_MODE
-
-#ifdef DEBUG_MODE
-static void
-GOSTHashPrintDebug(uint8_t *state)
-{
-    int i;
-    for (i = 0; i < 64; i++)
-        printf("%02x", state[i]);
-    printf("\n");
-}
-#endif
-
 void
-GOSTHashInit(TGOSTHashContext *CTX, uint16_t hash_size)
+GOSTHashInit(TGOSTHashContext *CTX)
 {
     memset(CTX, 0x00, sizeof(TGOSTHashContext));
-    if (hash_size == 256)
-        memset(CTX->h, 0x01, BLOCK_SIZE);
-    else
-        memset(CTX->h, 0x00, BLOCK_SIZE);
-    CTX->hash_size = hash_size;
     CTX->v_512[1] = 0x02;
 }
 
@@ -59,10 +41,8 @@ static void
 GOSTHashS(uint8_t *state)
 {
     int i;
-    vect internal;
     for (i = 63; i >= 0; i--)
-        internal[i] = Pi[state[i]];
-    memcpy(state, internal, BLOCK_SIZE);
+        state[i] = Pi[state[i]];
 }
 
 static void
@@ -94,7 +74,6 @@ static void
 GOSTHashE(uint8_t *K, const uint8_t *m, uint8_t *state)
 {
     int i;
-    memcpy(K, K, BLOCK_SIZE);
     GOSTHashX(m, K, state);
     for(i = 0; i < 12; i++)
     {
@@ -142,16 +121,6 @@ GOSTHashStage_2(TGOSTHashContext *CTX, const uint8_t *data)
     GOSTHashG(CTX->h, CTX->N, data);
     GOSTHashAdd512(CTX->N, CTX->v_512, CTX->N);
     GOSTHashAdd512(CTX->Sigma, data, CTX->Sigma);
-
-#ifdef DEBUG_MODE
-    printf("Stage 2\n");
-    printf("G:\n");
-    GOSTHashPrintDebug(CTX->h);
-    printf("N:\n");
-    GOSTHashPrintDebug(CTX->N);
-    printf("Sigma:\n");
-    GOSTHashPrintDebug(CTX->Sigma);
-#endif
 }
 
 static void
@@ -171,16 +140,6 @@ GOSTHashStage_3(TGOSTHashContext *CTX)
 
     GOSTHashG(CTX->h, CTX->v_0, (const uint8_t*)&(CTX->N));
     GOSTHashG(CTX->h, CTX->v_0, (const uint8_t*)&(CTX->Sigma));
-
-#ifdef DEBUG_MODE
-    printf("Stage 3\n");
-    printf("G:\n");
-    GOSTHashPrintDebug(CTX->h);
-    printf("N:\n");
-    GOSTHashPrintDebug(CTX->N);
-    printf("Sigma:\n");
-    GOSTHashPrintDebug(CTX->Sigma);
-#endif
 
     memcpy(CTX->hash, CTX->h, BLOCK_SIZE);
 }

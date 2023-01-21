@@ -1,5 +1,5 @@
 bruteforce_mutex_one: 
-	gcc  ../crc32/gost_3411_2012_calc.h ../crc32/gost_3411_2012_const.h ../crc32/gost_3411_2012_test.h ../crc32/gost_3411_2012_calc.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -lpthread
+	gcc $(foo) -I../crc32/ -include ../crc32/gost_3411_2012_calc.h ../crc32/gost_3411_2012_calc.c ../bruteforce_funcs/bruteforce_funcs.c bruteforce.c -lpthread -march=native
 
 test1: a.out
 	../crc32/encript_password.exe -s 1 | ./a.out
