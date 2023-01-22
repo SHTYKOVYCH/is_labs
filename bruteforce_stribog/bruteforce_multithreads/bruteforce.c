@@ -7,7 +7,10 @@
 #include "gost_3411_2012_calc.h"
 
 #define MAX_PASSWORD_LENGTH 10
-//#define NUM_OF_THREADS 12
+
+#ifndef NUM_OF_THREADS
+    #define NUM_OF_THREADS 2
+#endif
 
 #define false 0
 #define true 1
@@ -29,7 +32,9 @@
 
 #endif
 
-//#define testNum 2
+#ifndef testNum 
+    #define testNum 3
+#endif
 
 struct password_thread {
     int threadId;
